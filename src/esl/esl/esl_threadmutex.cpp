@@ -17,7 +17,7 @@
  *
  */
 
-#ifdef WIN32
+#ifdef _MSC_VER
 /* required for TryEnterCriticalSection definition.  Must be defined before windows.h include */
 #define _WIN32_WINNT 0x0400
 #endif
@@ -25,7 +25,7 @@
 #include "esl.h"
 #include "esl_threadmutex.h"
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #include <process.h>
 
 #define ESL_THREAD_CALLING_CONVENTION __stdcall
@@ -47,7 +47,7 @@ struct esl_mutex {
 #endif
 
 struct esl_thread {
-#ifdef WIN32
+#ifdef _MSC_VER
 	void *handle;
 #else
 	pthread_t handle;
@@ -55,7 +55,7 @@ struct esl_thread {
 	void *private_data;
 	esl_thread_function_t function;
 	size_t stack_size;
-#ifndef WIN32
+#ifndef _MSC_VER
 	pthread_attr_t attribute;
 #endif
 };
@@ -72,7 +72,7 @@ static void * ESL_THREAD_CALLING_CONVENTION thread_launch(void *args)
 	void *exit_val;
     esl_thread_t *thread = (esl_thread_t *)args;
 	exit_val = thread->function(thread, thread->private_data);
-#ifndef WIN32
+#ifndef _MSC_VER
 	pthread_attr_destroy(&thread->attribute);
 #endif
 	free(thread);
@@ -98,7 +98,7 @@ esl_status_t esl_thread_create_detached_ex(esl_thread_function_t func, void *dat
 	thread->function = func;
 	thread->stack_size = stack_size;
 
-#if defined(WIN32)
+#if defined(_MSC_VER)
 	thread->handle = (void *)_beginthreadex(NULL, (unsigned)thread->stack_size, (unsigned int (__stdcall *)(void *))thread_launch, thread, 0, NULL);
 	if (!thread->handle) {
 		goto fail;
@@ -137,7 +137,7 @@ esl_status_t esl_thread_create_detached_ex(esl_thread_function_t func, void *dat
 ESL_DECLARE(esl_status_t) esl_mutex_create(esl_mutex_t **mutex)
 {
 	esl_status_t status = ESL_FAIL;
-#ifndef WIN32
+#ifndef _MSC_VER
 	pthread_mutexattr_t attr;
 #endif
 	esl_mutex_t *check = NULL;
@@ -145,7 +145,7 @@ ESL_DECLARE(esl_status_t) esl_mutex_create(esl_mutex_t **mutex)
 	check = (esl_mutex_t *)malloc(sizeof(**mutex));
 	if (!check)
 		goto done;
-#ifdef WIN32
+#ifdef _MSC_VER
 	InitializeCriticalSection(&check->mutex);
 #else
 	if (pthread_mutexattr_init(&attr)) {
@@ -182,7 +182,7 @@ ESL_DECLARE(esl_status_t) esl_mutex_destroy(esl_mutex_t **mutex)
 	if (!mp) {
 		return ESL_FAIL;
 	}
-#ifdef WIN32
+#ifdef _MSC_VER
 	DeleteCriticalSection(&mp->mutex);
 #else
 	if (pthread_mutex_destroy(&mp->mutex))
@@ -194,7 +194,7 @@ ESL_DECLARE(esl_status_t) esl_mutex_destroy(esl_mutex_t **mutex)
 
 ESL_DECLARE(esl_status_t) esl_mutex_lock(esl_mutex_t *mutex)
 {
-#ifdef WIN32
+#ifdef _MSC_VER
 	EnterCriticalSection(&mutex->mutex);
 #else
 	if (pthread_mutex_lock(&mutex->mutex))
@@ -205,7 +205,7 @@ ESL_DECLARE(esl_status_t) esl_mutex_lock(esl_mutex_t *mutex)
 
 ESL_DECLARE(esl_status_t) esl_mutex_trylock(esl_mutex_t *mutex)
 {
-#ifdef WIN32
+#ifdef _MSC_VER
 	if (!TryEnterCriticalSection(&mutex->mutex))
 		return ESL_FAIL;
 #else
@@ -217,7 +217,7 @@ ESL_DECLARE(esl_status_t) esl_mutex_trylock(esl_mutex_t *mutex)
 
 ESL_DECLARE(esl_status_t) esl_mutex_unlock(esl_mutex_t *mutex)
 {
-#ifdef WIN32
+#ifdef _MSC_VER
 	LeaveCriticalSection(&mutex->mutex);
 #else
 	if (pthread_mutex_unlock(&mutex->mutex))

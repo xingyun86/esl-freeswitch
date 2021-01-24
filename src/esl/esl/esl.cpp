@@ -65,7 +65,7 @@ extern "C"
 }
 #endif /* _MSC_VER>=1900 */
 #include <esl.h>
-#ifndef WIN32
+#ifndef _MSC_VER
 #define closesocket(x) shutdown(x, 2); close(x)
 #include <fcntl.h>
 #include <errno.h>
@@ -236,7 +236,7 @@ ESL_DECLARE(const char *)esl_stristr(const char *instr, const char *str)
 	return NULL;
 }
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #ifndef vsnprintf
 #define vsnprintf _vsnprintf
 #endif
@@ -247,7 +247,7 @@ int vasprintf(char **ret, const char *format, va_list ap);
 
 ESL_DECLARE(int) esl_vasprintf(char **ret, const char *fmt, va_list ap)
 {
-#if !defined(WIN32) && !defined(__sun)
+#if !defined(_MSC_VER) && !defined(__sun)
 	return vasprintf(ret, fmt, ap);
 #else
 	char *buf;
@@ -447,7 +447,7 @@ static int sock_setup(esl_handle_t *handle)
         return ESL_FAIL;
     }
 
-#ifdef WIN32
+#ifdef _MSC_VER
 	{
 		BOOL bOptVal = TRUE;
 		int bOptLen = sizeof(BOOL);
@@ -646,7 +646,7 @@ ESL_DECLARE(esl_status_t) esl_events(esl_handle_t *handle, esl_event_type_t etyp
 
 static int esl_socket_reuseaddr(esl_socket_t socket) 
 {
-#ifdef WIN32
+#ifdef _MSC_VER
 	BOOL reuse_addr = TRUE;
 	return setsockopt(socket, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse_addr, sizeof(reuse_addr));
 #else
@@ -678,7 +678,7 @@ static int prepare_sock(esl_socket_t sock)
 {
 	int r = 0;
 
-#ifdef WIN32
+#ifdef _MSC_VER
 		u_long arg = 1;
 		if (ioctlsocket(sock, FIONBIO, &arg) == SOCKET_ERROR) {
 			r = -1;
@@ -731,7 +731,7 @@ ESL_DECLARE(esl_status_t) esl_listen(const char *host, esl_port_t port, esl_list
 	for (;;) {
 		int client_sock;                    
 		struct sockaddr_in echoClntAddr;
-#ifdef WIN32
+#ifdef _MSC_VER
 		int clntLen;
 #else
 		unsigned int clntLen;
@@ -788,7 +788,7 @@ ESL_DECLARE(esl_status_t) esl_listen_threaded(const char *host, esl_port_t port,
 	for (;;) {
 		int client_sock;                    
 		struct sockaddr_in echoClntAddr;
-#ifdef WIN32
+#ifdef _MSC_VER
 		int clntLen;
 #else
 		unsigned int clntLen;
@@ -835,7 +835,7 @@ ESL_DECLARE(int) esl_wait_sock(esl_socket_t sock, uint32_t ms, esl_poll_t flags)
 
 
 #ifdef ESL_USE_SELECT
-#ifdef WIN32
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 6262 ) /* warning C6262: Function uses '98348' bytes of stack: exceeds /analyze:stacksize'16384'. Consider moving some data to heap */
 #endif
@@ -855,14 +855,14 @@ ESL_DECLARE(int) esl_wait_sock(esl_socket_t sock, uint32_t ms, esl_poll_t flags)
 	FD_ZERO(&wfds);
 	FD_ZERO(&efds);
 
-#ifndef WIN32
+#ifndef _MSC_VER
 	/* Wouldn't you rather know?? */
 	assert(sock <= FD_SETSIZE);
 #endif
 	
 	if ((flags & ESL_POLL_READ)) {
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4127 )
 	FD_SET(sock, &rfds);
@@ -874,7 +874,7 @@ ESL_DECLARE(int) esl_wait_sock(esl_socket_t sock, uint32_t ms, esl_poll_t flags)
 
 	if ((flags & ESL_POLL_WRITE)) {
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4127 )
 	FD_SET(sock, &wfds);
@@ -886,7 +886,7 @@ ESL_DECLARE(int) esl_wait_sock(esl_socket_t sock, uint32_t ms, esl_poll_t flags)
 
 	if ((flags & ESL_POLL_ERROR)) {
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #pragma warning( push )
 #pragma warning( disable : 4127 )
 	FD_SET(sock, &efds);
@@ -920,7 +920,7 @@ ESL_DECLARE(int) esl_wait_sock(esl_socket_t sock, uint32_t ms, esl_poll_t flags)
 	return r;
 
 }
-#ifdef WIN32
+#ifdef _MSC_VER
 #pragma warning( pop ) 
 #endif
 #endif
@@ -980,7 +980,7 @@ ESL_DECLARE(esl_status_t) esl_connect_timeout(esl_handle_t *handle, const char *
 	struct sockaddr_in *sockaddr_in;
 	struct sockaddr_in6 *sockaddr_in6;
 	socklen_t socklen;
-#ifndef WIN32
+#ifndef _MSC_VER
 	int fd_flags = 0;
 #else
 	WORD wVersionRequested = MAKEWORD(2, 0);
@@ -1034,7 +1034,7 @@ ESL_DECLARE(esl_status_t) esl_connect_timeout(esl_handle_t *handle, const char *
 	}
 
 	if (timeout) {
-#ifdef WIN32
+#ifdef _MSC_VER
 		u_long arg = 1;
 		if (ioctlsocket(handle->sock, FIONBIO, &arg) == SOCKET_ERROR) {
 			snprintf(handle->err, sizeof(handle->err), "Socket Connection Error");
@@ -1067,7 +1067,7 @@ ESL_DECLARE(esl_status_t) esl_connect_timeout(esl_handle_t *handle, const char *
 			goto fail;
 		}
 
-#ifdef WIN32
+#ifdef _MSC_VER
 		{
 			u_long arg = 0;
 			if (ioctlsocket(handle->sock, FIONBIO, &arg) == SOCKET_ERROR) {

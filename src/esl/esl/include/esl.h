@@ -182,7 +182,7 @@ typedef enum {
 #endif
 
 #include <time.h>
-#ifndef WIN32
+#ifndef _MSC_VER
 #include <sys/time.h>
 #endif
 
@@ -190,7 +190,7 @@ typedef enum {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef WIN32
+#ifndef _MSC_VER
 #include <sys/types.h>
 #include <sys/select.h>
 #include <netinet/tcp.h>
@@ -217,7 +217,7 @@ typedef enum {
 #define esl_strlen_zero_buf(s) (*(s) == '\0')
 #define end_of(_s) *(*_s == '\0' ? _s : _s + strlen(_s) - 1)
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #include <winsock2.h>
 #include <windows.h>
 typedef SOCKET esl_socket_t;
